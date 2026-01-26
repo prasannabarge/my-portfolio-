@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, Download, Mail, Linkedin, Github, ExternalLink, ChevronDown, Moon, Sun } from 'lucide-react';
 
 const App = () => {
@@ -127,6 +127,55 @@ const App = () => {
     }
   ];
 
+  // -------------------------
+  // Neon, cursor-reactive shadow for profile image
+  // -------------------------
+  const profileRef = useRef(null);
+
+  const handleMouseMove = (e) => {
+    const el = profileRef.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const x = e.clientX - rect.left; // x position within the element.
+    const y = e.clientY - rect.top;  // y position within the element.
+    const cx = rect.width / 2;
+    const cy = rect.height / 2;
+
+    // normalized values between -1 and 1
+    const dx = (x - cx) / cx;
+    const dy = (y - cy) / cy;
+
+    // rotate values (tilt intensity)
+    const rotateX = (-dy) * 8; // tilt up to 8deg
+    const rotateY = dx * 8;
+
+    // shadow offset (moves opposite to cursor for "light" feel)
+    const shadowOffsetX = (-dx) * 20; // px
+    const shadowOffsetY = (-dy) * 20; // px
+
+    // neon colors (two layered glows)
+    const neonBlue = 'rgba(59,130,246,0.85)'; // blue
+    const neonPurple = 'rgba(139,92,246,0.7)'; // purple
+
+    // layered box-shadow (glow + softer outer glow)
+    const boxShadow = `${shadowOffsetX}px ${shadowOffsetY}px 30px 6px ${neonBlue}, ${-shadowOffsetX}px ${-shadowOffsetY}px 60px 18px ${neonPurple}`;
+
+    // apply styles directly for smooth updates
+    el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(8px)`;
+    el.style.boxShadow = boxShadow;
+    el.style.transition = 'transform 120ms ease, box-shadow 120ms ease';
+  };
+
+  const handleMouseLeave = () => {
+    const el = profileRef.current;
+    if (!el) return;
+    // reset
+    el.style.transform = 'none';
+    el.style.boxShadow = '';
+    el.style.transition = 'transform 300ms ease, box-shadow 300ms ease';
+  };
+
   return (
     <div className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
       {/* Navigation */}
@@ -230,11 +279,21 @@ const App = () => {
           <div className="flex justify-center">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-2xl opacity-30 animate-pulse"></div>
-              <img
-                src="/PrasannaBarge.jpg"
-                alt="Profile"
-                className="relative w-80 h-80 object-cover rounded-full border-4 border-gray-800 shadow-2xl"
-              />
+
+              {/* PROFILE IMAGE: wrapped to receive mouse events and show neon shadow */}
+              <div
+                ref={profileRef}
+                onMouseMove={handleMouseMove}
+                onMouseLeave={handleMouseLeave}
+                style={{ transition: 'transform 0.15s ease, box-shadow 0.15s ease', willChange: 'transform, box-shadow' }}
+                className="relative w-80 h-80 rounded-full border-4 border-gray-800 shadow-2xl overflow-hidden"
+              >
+                <img
+                  src="/PrasannaBarge.jpg"
+                  alt="Profile"
+                  className="w-full h-full object-cover rounded-full"
+                />
+              </div>
             </div>
           </div>
         </div>
