@@ -458,7 +458,7 @@ const App = () => {
               onClick={() => {
                 // Download resume from /assets/resume/Prasanna_resume.pdf
                 const link = document.createElement('a');
-                link.href = '/assets/resume/Prasanna_resume.pdf';
+                link.href = '/assets/resume/Prasanna_Resume.pdf';
                 link.download = 'Prasanna_Resume.pdf';
                 link.click();
               }}
