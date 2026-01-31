@@ -1,6 +1,48 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Menu, X, Download, Mail, Linkedin, Github, ExternalLink, ChevronDown, Moon, Sun } from 'lucide-react';
 
+// --- IMPORTS FOR 3D ANIMATION ---
+import { Canvas, useFrame } from '@react-three/fiber';
+import { Sparkles, Stars } from '@react-three/drei';
+
+// --- 3D COMPONENT: DIGITAL PARTICLES ---
+// This replaces the "bubble" with a "data field" effect
+const CodingBackground = ({ isDarkMode }) => {
+  return (
+    <group rotation={[0, 0, Math.PI / 4]}>
+      {/* Primary Data Particles (Close & Fast) */}
+      <Sparkles 
+        count={200} 
+        scale={12} 
+        size={3} 
+        speed={0.4} 
+        opacity={0.7}
+        color={isDarkMode ? "#38bdf8" : "#7c3aed"} // Cyan in Dark, Purple in Light
+      />
+      {/* Secondary Background Noise (Far & Slow) */}
+      <Sparkles 
+        count={1500} 
+        scale={20} 
+        size={1} 
+        speed={0.2} 
+        opacity={0.3}
+        color={isDarkMode ? "#ffffff" : "#64748b"} // White dust in Dark, Gray in Light
+      />
+    </group>
+  );
+};
+
+// --- BACKGROUND WRAPPER ---
+const BackgroundAnimation = ({ isDarkMode }) => {
+  return (
+    <div className="absolute inset-0 z-0 pointer-events-none">
+      <Canvas camera={{ position: [0, 0, 5] }}>
+        <CodingBackground isDarkMode={isDarkMode} />
+      </Canvas>
+    </div>
+  );
+};
+
 const App = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -109,7 +151,7 @@ const App = () => {
     }
   ];
 
-  // Projects data (sample - can be replaced)
+  // Projects data
   const projects = [
     {
       title: "Customer Churn Analysis & Retention Strategy",
@@ -137,31 +179,25 @@ const App = () => {
     if (!el) return;
 
     const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left; // x position within the element.
-    const y = e.clientY - rect.top;  // y position within the element.
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
     const cx = rect.width / 2;
     const cy = rect.height / 2;
 
-    // normalized values between -1 and 1
     const dx = (x - cx) / cx;
     const dy = (y - cy) / cy;
 
-    // rotate values (tilt intensity)
-    const rotateX = (-dy) * 8; // tilt up to 8deg
+    const rotateX = (-dy) * 8;
     const rotateY = dx * 8;
 
-    // shadow offset (moves opposite to cursor for "light" feel)
-    const shadowOffsetX = (-dx) * 20; // px
-    const shadowOffsetY = (-dy) * 20; // px
+    const shadowOffsetX = (-dx) * 20;
+    const shadowOffsetY = (-dy) * 20;
 
-    // neon colors (two layered glows)
-    const neonBlue = 'rgba(59,130,246,0.85)'; // blue
-    const neonPurple = 'rgba(139,92,246,0.7)'; // purple
+    const neonBlue = 'rgba(59,130,246,0.85)';
+    const neonPurple = 'rgba(139,92,246,0.7)';
 
-    // layered box-shadow (glow + softer outer glow)
     const boxShadow = `${shadowOffsetX}px ${shadowOffsetY}px 30px 6px ${neonBlue}, ${-shadowOffsetX}px ${-shadowOffsetY}px 60px 18px ${neonPurple}`;
 
-    // apply styles directly for smooth updates
     el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(8px)`;
     el.style.boxShadow = boxShadow;
     el.style.transition = 'transform 120ms ease, box-shadow 120ms ease';
@@ -170,7 +206,6 @@ const App = () => {
   const handleMouseLeave = () => {
     const el = profileRef.current;
     if (!el) return;
-    // reset
     el.style.transform = 'none';
     el.style.boxShadow = '';
     el.style.transition = 'transform 300ms ease, box-shadow 300ms ease';
@@ -236,8 +271,12 @@ const App = () => {
       </nav>
 
       {/* Hero Section */}
-      <section id="home" className="min-h-screen flex items-center justify-center px-4 pt-16">
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+      <section id="home" className="relative min-h-screen flex items-center justify-center px-4 pt-16 overflow-hidden">
+        
+        {/* --- ADDED: 3D PARTICLE/CODING BACKGROUND --- */}
+        <BackgroundAnimation isDarkMode={isDarkMode} />
+
+        <div className="relative z-10 max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
           <div className="space-y-6 animate-fade-in">
             <h1 className="text-5xl md:text-7xl font-bold leading-tight h-20">
               {currentRole}
@@ -258,19 +297,19 @@ const App = () => {
               </button>
               <button
                 onClick={() => scrollToSection('projects')}
-                className={`px-8 py-3 border-2 ${isDarkMode ? 'border-gray-700 hover:border-blue-500' : 'border-gray-300 hover:border-blue-500'} rounded-lg font-semibold transition-all duration-300`}
+                className={`px-8 py-3 border-2 ${isDarkMode ? 'border-gray-700 hover:border-blue-500' : 'border-gray-300 hover:border-blue-500'} rounded-lg font-semibold transition-all duration-300 backdrop-blur-sm bg-opacity-20`}
               >
                 View Work
               </button>
             </div>
             <div className="flex space-x-4 pt-4">
-              <a href="mailto:prasannabarge.dev@gmail.com" className="p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors">
+              <a href="mailto:prasannabarge.dev@gmail.com" className="p-3 rounded-lg bg-gray-800/80 hover:bg-gray-700 transition-colors backdrop-blur-md">
                 <Mail size={24} />
               </a>
-              <a href="https://www.linkedin.com/in/prasanna-barge--/" target="_blank" rel="noopener noreferrer" className="p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors">
+              <a href="https://www.linkedin.com/in/prasanna-barge--/" target="_blank" rel="noopener noreferrer" className="p-3 rounded-lg bg-gray-800/80 hover:bg-gray-700 transition-colors backdrop-blur-md">
                 <Linkedin size={24} />
               </a>
-              <a href="https://github.com/prasannabarge" target="_blank" rel="noopener noreferrer" className="p-3 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors">
+              <a href="https://github.com/prasannabarge" target="_blank" rel="noopener noreferrer" className="p-3 rounded-lg bg-gray-800/80 hover:bg-gray-700 transition-colors backdrop-blur-md">
                 <Github size={24} />
               </a>
             </div>
@@ -280,13 +319,13 @@ const App = () => {
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-2xl opacity-30 animate-pulse"></div>
 
-              {/* PROFILE IMAGE: wrapped to receive mouse events and show neon shadow */}
+              {/* PROFILE IMAGE */}
               <div
                 ref={profileRef}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseLeave}
                 style={{ transition: 'transform 0.15s ease, box-shadow 0.15s ease', willChange: 'transform, box-shadow' }}
-                className="relative w-80 h-80 rounded-full border-4 border-gray-800 shadow-2xl overflow-hidden"
+                className="relative w-80 h-80 rounded-full border-4 border-gray-800 shadow-2xl overflow-hidden cursor-pointer"
               >
                 <img
                   src="/PrasannaBarge.jpg"
@@ -298,16 +337,16 @@ const App = () => {
           </div>
         </div>
 
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce z-10">
           <ChevronDown size={32} className="text-gray-400" />
         </div>
       </section>
 
       {/* About Section */}
-      <section id="about" className="min-h-screen flex items-center px-4 py-20">
+      <section id="about" className="min-h-screen flex items-center px-4 py-20 relative z-10">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-4xl md:text-5xl font-bold mb-8 text-center">About Me</h2>
-          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-2xl p-8 md:p-12 space-y-6`}>
+          <div className={`${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'} rounded-2xl p-8 md:p-12 space-y-6 shadow-xl`}>
             <p className="text-lg leading-relaxed">
               I am a passionate and detail-oriented Business Analyst with a strong foundation in translating business requirements into actionable solutions. My analytical mindset and problem-solving abilities enable me to bridge the gap between stakeholders and technical teams effectively.
             </p>
@@ -453,10 +492,8 @@ const App = () => {
               </p>
             </div>
 
-
             <button
               onClick={() => {
-                // Download resume from /assets/resume/Prasanna_resume.pdf
                 const link = document.createElement('a');
                 link.href = '/assets/resume/Prasanna_Resume.pdf';
                 link.download = 'Prasanna_Resume.pdf';
