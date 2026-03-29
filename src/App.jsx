@@ -83,7 +83,7 @@ const App = () => {
   // -------------------------
   const roles = [
     "Business Analyst",
-    "Business Consultant",
+    "Product Owner",
     "Product Analyst",
     "Process Analyst",
     "Agile BA",
