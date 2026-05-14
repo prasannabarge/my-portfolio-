@@ -85,8 +85,8 @@ const App = () => {
     "Business Analyst",
     "Product Owner",
     "Product Analyst",
-    "Process Analyst",
-    "Agile BA",
+    "Produt Manager",
+    "Data Analyst",
   ];
 
   const [currentRole, setCurrentRole] = useState('');
