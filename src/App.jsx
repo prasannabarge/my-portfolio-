@@ -761,7 +761,7 @@ const App = () => {
               style={!isDarkMode ? { borderColor: '#c8cfe8' } : { borderColor: '#374151' }}
             >
               <p className={isDarkMode ? 'text-gray-400' : 'lm-sub'}>
-                © 2026 All rights reserved. Built with React & Tailwind CSS
+                © 2026 Prasanna Barge All rights reserved. ❤️ & Built with React & Tailwind CSS
               </p>
             </div>
           </div>
