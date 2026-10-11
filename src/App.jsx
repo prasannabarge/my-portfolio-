@@ -1,774 +1,161 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Menu, X, Download, Mail, Linkedin, Github, ExternalLink, ChevronDown, Moon, Sun } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Canvas } from '@react-three/fiber';
+import { Sparkles } from '@react-three/drei';
+import { ArrowUpRight, Check, Download, Github, Linkedin, Mail, Menu, Moon, Sun, X } from 'lucide-react';
 
-// --- IMPORTS FOR 3D ANIMATION ---
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Sparkles, Stars } from '@react-three/drei';
+const navItems = ['Home', 'About', 'Skills', 'Experience', 'Projects', 'Resume', 'Contact'];
+const roles = ['Business Analyst', 'Product Owner', 'Product Analyst', 'Product Manager', 'Data Analyst'];
 
-// ─── LIGHT MODE PALETTE (injected as a style tag) ────────────────────────────
-// bg:        #f0f2f7  (cool blue-tinted off-white — calm, not blinding)
-// surface:   #e4e8f2  (slightly deeper cool surface for cards)
-// inner:     #ffffff  (pure white for inner cards — nice contrast layer)
-// text-main: #1a1f36  (deep navy-slate — rich, not harsh black)
-// text-sub:  #4a5280  (muted indigo-slate for secondary text)
-// border:    #c8cfe8  (soft indigo-tinted border)
-// ─────────────────────────────────────────────────────────────────────────────
+const skills = [
+  ['Business analysis', 'Requirements Gathering', 'User Stories', 'Acceptance Criteria', 'Process Mapping', 'Workflow Diagrams', 'Use Case Modeling'],
+  ['Agile practice', 'Agile', 'Scrum', 'SDLC', 'Sprint Planning', 'Backlog Refinement', 'Daily Stand-ups'],
+  ['Data & analytics', 'SQL', 'Python (Data Analysis)', 'MS Excel (Pivot Tables, VLOOKUP)', 'Power BI'],
+  ['Technical toolkit', 'JSON', 'XML', 'JIRA', 'Confluence', 'Figma', 'Draw.io', 'Eraser.io', 'MS Office Suite'],
+  ['Ways of working', 'Stakeholder Communication', 'Problem Solving', 'Analytical Thinking', 'Attention to Detail', 'Time Management', 'Collaboration', 'Adaptability'],
+];
 
-const LIGHT_STYLES = `
-  .lm-bg       { background-color: #f0f2f7; }
-  .lm-nav      { background-color: rgba(240,242,247,0.96); border-color: #c8cfe8; }
-  .lm-card     { background-color: #e4e8f2; }
-  .lm-inner    { background-color: #ffffff; }
-  .lm-text     { color: #1a1f36; }
-  .lm-sub      { color: #4a5280; }
-  .lm-border   { border-color: #c8cfe8; }
-  .lm-input    { background-color: #ffffff; border-color: #c8cfe8; color: #1a1f36; }
-  .lm-input::placeholder { color: #8892b8; }
-  .lm-social   { background-color: rgba(200,207,232,0.7); }
-  .lm-social:hover { background-color: rgba(180,190,220,0.9); }
-  .lm-mobile-btn { color: #1a1f36; }
-  .lm-mobile-btn:hover { background-color: #d8ddf0; }
-  .lm-footer-social { background-color: #d0d6ee; }
-  .lm-footer-social:hover { background-color: #b8c0e0; }
-  .lm-nav-link { color: #2d3561; }
-  .lm-nav-link:hover { color: #6366f1; }
-  .lm-chevron  { color: #4a5280; }
-  .lm-tag      { color: #2d3561; }
-  .lm-project-code { background-color: #ffffff; color: #1a1f36; }
-  .lm-project-code:hover { background-color: #e4e8f2; }
-`;
+const projects = [
+  {
+    number: '01',
+    title: 'Customer Churn Analysis & Retention Strategy',
+    description: 'Analyzed customer behavior and churn patterns to surface retention opportunities and translate findings into a clear, decision-ready business story.',
+    tools: ['Power BI', 'SQL', 'Excel', 'Python'],
+    kind: 'churn',
+  },
+  {
+    number: '02',
+    title: 'E-Commerce Sales Performance Dashboard',
+    description: 'Built a focused view of sales performance and business KPIs, helping turn transactional data into a more readable monthly performance narrative.',
+    tools: ['Excel', 'Power BI', 'SQL'],
+    kind: 'sales',
+  },
+];
 
-// --- 3D COMPONENT: DIGITAL PARTICLES ---
-const CodingBackground = ({ isDarkMode }) => {
+function BackgroundAnimation({ isDarkMode }) {
   return (
-    <group rotation={[0, 0, Math.PI / 4]}>
-      <Sparkles
-        count={200}
-        scale={12}
-        size={3}
-        speed={0.4}
-        opacity={0.7}
-        color={isDarkMode ? "#38bdf8" : "#7c3aed"}
-      />
-      <Sparkles
-        count={1500}
-        scale={20}
-        size={1}
-        speed={0.2}
-        opacity={0.3}
-        color={isDarkMode ? "#ffffff" : "#64748b"}
-      />
-    </group>
-  );
-};
-
-// --- BACKGROUND WRAPPER ---
-const BackgroundAnimation = ({ isDarkMode }) => {
-  return (
-    <div className="absolute inset-0 z-0 pointer-events-none">
-      <Canvas camera={{ position: [0, 0, 5] }}>
-        <CodingBackground isDarkMode={isDarkMode} />
+    <div className="hero-canvas" aria-hidden="true">
+      <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0, 5] }}>
+        <Sparkles count={isDarkMode ? 450 : 260} scale={18} size={isDarkMode ? 1.5 : 1.2} speed={0.16} opacity={isDarkMode ? 0.36 : 0.18} color={isDarkMode ? '#8ac8ff' : '#5366cf'} />
       </Canvas>
     </div>
   );
-};
+}
 
-const App = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+function SectionHeading({ eyebrow, title, text }) {
+  return (
+    <header className="section-heading reveal">
+      <span className="eyebrow">{eyebrow}</span>
+      <h2>{title}</h2>
+      {text && <p>{text}</p>}
+    </header>
+  );
+}
+
+function ProjectPreview({ kind }) {
+  return (
+    <div className={`project-preview ${kind}`} aria-hidden="true">
+      <div className="preview-top"><span /> <span /> <span /></div>
+      <div className="preview-body">
+        {kind === 'churn' ? (
+          <>
+            <div className="metric-row"><b>Retention view</b><strong>+ insights</strong></div>
+            <div className="line-chart"><i /><i /><i /><i /><i /></div>
+            <div className="preview-bars"><span /><span /><span /><span /></div>
+          </>
+        ) : (
+          <>
+            <div className="metric-row"><b>Sales overview</b><strong>KPIs</strong></div>
+            <div className="sales-grid"><span /><span /><span /><span /><span /><span /></div>
+            <div className="preview-bars"><span /><span /><span /><span /><span /></div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function App() {
   const [isDarkMode, setIsDarkMode] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
-
-  // -------------------------
-  // Typing animation (roles)
-  // -------------------------
-  const roles = [
-    "Business Analyst",
-    "Product Owner",
-    "Product Analyst",
-    "Produt Manager",
-    "Data Analyst",
-  ];
-
-  const [currentRole, setCurrentRole] = useState('');
+  const [role, setRole] = useState('');
   const [roleIndex, setRoleIndex] = useState(0);
-  const [subIndex, setSubIndex] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [formState, setFormState] = useState({ name: '', email: '', message: '' });
 
   useEffect(() => {
-    if (!isDeleting && subIndex === roles[roleIndex].length + 1) {
-      const t = setTimeout(() => setIsDeleting(true), 900);
-      return () => clearTimeout(t);
-    }
-    if (isDeleting && subIndex === 0) {
-      setIsDeleting(false);
-      setRoleIndex((r) => (r + 1) % roles.length);
-      return;
-    }
-    const speed = isDeleting ? 40 : 110;
-    const timeout = setTimeout(() => {
-      setSubIndex((s) => s + (isDeleting ? -1 : 1));
-    }, speed);
-    return () => clearTimeout(timeout);
-  }, [subIndex, roleIndex, isDeleting]);
+    const fullRole = roles[roleIndex];
+    const complete = role === fullRole;
+    const empty = role.length === 0;
+    const timer = window.setTimeout(() => {
+      if (complete && !isDeleting) setIsDeleting(true);
+      else if (empty && isDeleting) { setIsDeleting(false); setRoleIndex((index) => (index + 1) % roles.length); }
+      else setRole(fullRole.slice(0, role.length + (isDeleting ? -1 : 1)));
+    }, complete && !isDeleting ? 1300 : isDeleting ? 45 : 95);
+    return () => window.clearTimeout(timer);
+  }, [role, roleIndex, isDeleting]);
 
   useEffect(() => {
-    setCurrentRole(roles[roleIndex].substring(0, subIndex));
-  }, [subIndex, roleIndex]);
+    const sections = navItems.map((item) => item.toLowerCase());
+    const observer = new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && setActiveSection(entry.target.id)), { rootMargin: '-25% 0px -65% 0px' });
+    sections.forEach((id) => { const section = document.getElementById(id); if (section) observer.observe(section); });
+    return () => observer.disconnect();
+  }, []);
 
-  // -------------------------
-  // Active section on scroll
-  // -------------------------
   useEffect(() => {
-    const handleScroll = () => {
-      const sections = ['home', 'about', 'skills', 'experience', 'projects', 'resume', 'contact'];
-      const current = sections.find(section => {
-        const element = document.getElementById(section);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          return rect.top <= 100 && rect.bottom >= 100;
-        }
-        return false;
-      });
-      if (current) setActiveSection(current);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const revealObserver = new IntersectionObserver((entries) => entries.forEach((entry) => entry.isIntersecting && entry.target.classList.add('is-visible')), { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach((element) => revealObserver.observe(element));
+    return () => revealObserver.disconnect();
   }, []);
 
   const scrollToSection = (id) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
-      setIsMenuOpen(false);
-    }
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    setIsMenuOpen(false);
   };
 
-  // Skills data
-  const skillsCategories = [
-    {
-      title: "Business Analysis",
-      skills: ["Requirements Gathering", "User Stories", "Acceptance Criteria", "Process Mapping", "Workflow Diagrams", "Use Case Modeling"]
-    },
-    {
-      title: "Agile & Methodologies",
-      skills: ["Agile", "Scrum", "SDLC", "Sprint Planning", "Backlog Refinement", "Daily Stand-ups"]
-    },
-    {
-      title: "Data & Analytics",
-      skills: ["SQL", "Python (Data Analysis)", "MS Excel (Pivot Tables, VLOOKUP)"]
-    },
-    {
-      title: "Data Visualization",
-      skills: ["Power BI"]
-    },
-    {
-      title: "Technical & Integration",
-      skills: ["JSON", "XML"]
-    },
-    {
-      title: "Tools",
-      skills: ["JIRA", "Confluence", "Figma", "Draw.io", "Eraser.io", "MS Office Suite"]
-    },
-    {
-      title: "Soft Skills",
-      skills: ["Stakeholder Communication", "Problem Solving", "Analytical Thinking", "Attention to Detail", "Time Management", "Collaboration", "Adaptability"]
-    }
-  ];
-
-  // Projects data
-  const projects = [
-    {
-      title: "Customer Churn Analysis & Retention Strategy",
-      overview: "Developed comprehensive analytics dashboard to track sales metrics, customer behavior, and inventory management for an e-commerce platform.",
-      tools: ["Power BI", "SQL", "Excel", "Python"],
-      github: "#",
-      demo: "#"
-    },
-    {
-      title: "E-Commerce-Sales-Dashboard",
-      overview: "Conducted end-to-end analysis of business processes, identified bottlenecks, and proposed solutions resulting in improved workflow efficiency.",
-      tools: ["Excel", "Power BI", "SQL"],
-      github: "#",
-      demo: "#"
-    }
-  ];
-
-  // -------------------------
-  // Neon, cursor-reactive shadow for profile image
-  // -------------------------
-  const profileRef = useRef(null);
-
-  const handleMouseMove = (e) => {
-    const el = profileRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const cx = rect.width / 2;
-    const cy = rect.height / 2;
-    const dx = (x - cx) / cx;
-    const dy = (y - cy) / cy;
-    const rotateX = (-dy) * 8;
-    const rotateY = dx * 8;
-    const shadowOffsetX = (-dx) * 20;
-    const shadowOffsetY = (-dy) * 20;
-    const neonBlue = 'rgba(59,130,246,0.85)';
-    const neonPurple = 'rgba(139,92,246,0.7)';
-    const boxShadow = `${shadowOffsetX}px ${shadowOffsetY}px 30px 6px ${neonBlue}, ${-shadowOffsetX}px ${-shadowOffsetY}px 60px 18px ${neonPurple}`;
-    el.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(8px)`;
-    el.style.boxShadow = boxShadow;
-    el.style.transition = 'transform 120ms ease, box-shadow 120ms ease';
-  };
-
-  const handleMouseLeave = () => {
-    const el = profileRef.current;
-    if (!el) return;
-    el.style.transform = 'none';
-    el.style.boxShadow = '';
-    el.style.transition = 'transform 300ms ease, box-shadow 300ms ease';
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const subject = encodeURIComponent(`Portfolio enquiry from ${formState.name}`);
+    const body = encodeURIComponent(`${formState.message}\n\nReply to: ${formState.email}`);
+    window.location.href = `mailto:prasannabarge.dev@gmail.com?subject=${subject}&body=${body}`;
   };
 
   return (
-    <>
-      {/* Inject light mode CSS palette */}
-      <style>{LIGHT_STYLES}</style>
+    <div className={isDarkMode ? 'site dark' : 'site light'}>
+      <nav className="nav" aria-label="Primary navigation">
+        <button className="wordmark" onClick={() => scrollToSection('home')} aria-label="Back to top"><span>PB</span> / Portfolio</button>
+        <div className="desktop-nav">{navItems.map((item) => <button key={item} className={activeSection === item.toLowerCase() ? 'active' : ''} onClick={() => scrollToSection(item.toLowerCase())}>{item}</button>)}</div>
+        <div className="nav-actions">
+          <button className="icon-button" onClick={() => setIsDarkMode((value) => !value)} aria-label={`Switch to ${isDarkMode ? 'light' : 'dark'} theme`}>{isDarkMode ? <Sun size={18} /> : <Moon size={18} />}</button>
+          <button className="icon-button menu-toggle" onClick={() => setIsMenuOpen((value) => !value)} aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}>{isMenuOpen ? <X size={20} /> : <Menu size={20} />}</button>
+        </div>
+        {isMenuOpen && <div className="mobile-nav">{navItems.map((item) => <button key={item} onClick={() => scrollToSection(item.toLowerCase())}>{item}</button>)}</div>}
+      </nav>
 
-      <div
-        className={`min-h-screen transition-colors duration-300 ${isDarkMode ? 'bg-gray-900 text-white' : 'lm-text'}`}
-        style={!isDarkMode ? { backgroundColor: '#f0f2f7' } : {}}
-      >
-        {/* Navigation */}
-        <nav
-          className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-            isDarkMode
-              ? 'bg-gray-900/95 backdrop-blur-md border-b border-gray-800'
-              : 'lm-nav backdrop-blur-md border-b'
-          }`}
-        >
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                PrasannaBarge
-              </div>
-
-              {/* Desktop Navigation */}
-              <div className="hidden md:flex space-x-8">
-                {['Home', 'About', 'Skills', 'Experience', 'Projects', 'Resume', 'Contact'].map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => scrollToSection(item.toLowerCase())}
-                    className={`transition-colors duration-300 ${
-                      activeSection === item.toLowerCase()
-                        ? 'text-blue-500'
-                        : isDarkMode
-                          ? 'text-gray-300 hover:text-blue-500'
-                          : 'lm-nav-link'
-                    }`}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex items-center space-x-4">
-                <button
-                  onClick={() => setIsDarkMode(!isDarkMode)}
-                  className={`p-2 rounded-lg transition-colors ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-blue-100'}`}
-                >
-                  {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
-                </button>
-                <button className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
-                  {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Menu */}
-          {isMenuOpen && (
-            <div className={isDarkMode ? 'md:hidden bg-gray-800' : 'md:hidden lm-card'}>
-              <div className="px-2 pt-2 pb-3 space-y-1">
-                {['Home', 'About', 'Skills', 'Experience', 'Projects', 'Resume', 'Contact'].map((item) => (
-                  <button
-                    key={item}
-                    onClick={() => scrollToSection(item.toLowerCase())}
-                    className={`block w-full text-left px-3 py-2 rounded-md transition-colors ${
-                      isDarkMode ? 'hover:bg-gray-700 text-gray-200' : 'lm-mobile-btn'
-                    }`}
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </nav>
-
-        {/* Hero Section */}
-        <section id="home" className="relative min-h-screen flex items-center justify-center px-4 pt-16 overflow-hidden">
+      <main>
+        <section id="home" className="hero section-shell">
           <BackgroundAnimation isDarkMode={isDarkMode} />
-
-          <div className="relative z-10 max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6 animate-fade-in">
-              <h1 className="text-5xl md:text-7xl font-bold leading-tight h-20">
-                {currentRole}
-                <span className="border-r-4 border-blue-500 ml-1 animate-pulse" />
-              </h1>
-              <p className={`text-xl md:text-2xl ${isDarkMode ? 'text-gray-400' : 'lm-sub'}`}>
-                Transforming data into actionable insights
-              </p>
-              <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'lm-text'}`}>
-                Passionate about bridging the gap between business needs and technical solutions through analytical thinking and strategic problem-solving.
-              </p>
-              <div className="flex space-x-4">
-                <button
-                  onClick={() => scrollToSection('contact')}
-                  className="px-8 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105 text-white"
-                >
-                  Get In Touch
-                </button>
-                <button
-                  onClick={() => scrollToSection('projects')}
-                  className={`px-8 py-3 border-2 rounded-lg font-semibold transition-all duration-300 backdrop-blur-sm bg-opacity-20 ${
-                    isDarkMode
-                      ? 'border-gray-700 hover:border-blue-500 text-gray-200'
-                      : 'lm-text hover:border-blue-500'
-                  }`}
-                  style={!isDarkMode ? { borderColor: '#c8cfe8' } : {}}
-                >
-                  View Work
-                </button>
-              </div>
-              <div className="flex space-x-4 pt-4">
-                <a
-                  href="mailto:prasannabarge.dev@gmail.com"
-                  className={`p-3 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-800/80 hover:bg-gray-700' : 'lm-social'}`}
-                >
-                  <Mail size={24} />
-                </a>
-                <a
-                  href="https://www.linkedin.com/in/prasanna-barge--/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`p-3 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-800/80 hover:bg-gray-700' : 'lm-social'}`}
-                >
-                  <Linkedin size={24} />
-                </a>
-                <a
-                  href="https://github.com/prasannabarge"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={`p-3 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-800/80 hover:bg-gray-700' : 'lm-social'}`}
-                >
-                  <Github size={24} />
-                </a>
-              </div>
-            </div>
-
-            <div className="flex justify-center">
-              <div className="relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full blur-2xl opacity-30 animate-pulse"></div>
-                <div
-                  ref={profileRef}
-                  onMouseMove={handleMouseMove}
-                  onMouseLeave={handleMouseLeave}
-                  style={{ transition: 'transform 0.15s ease, box-shadow 0.15s ease', willChange: 'transform, box-shadow' }}
-                  className={`relative w-80 h-80 rounded-full border-4 shadow-2xl overflow-hidden cursor-pointer ${
-                    isDarkMode ? 'border-gray-800' : 'border-white'
-                  }`}
-                >
-                  <img
-                    src="/PrasannaBarge.jpg"
-                    alt="Profile"
-                    className="w-full h-full object-cover rounded-full"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce z-10">
-            <ChevronDown size={32} className={isDarkMode ? 'text-gray-400' : 'lm-sub'} />
-          </div>
+          <div className="hero-copy reveal"><p className="eyebrow">Business analysis · Data · Product thinking</p><h1>I make sense of <em>complex</em> things.</h1><p className="hero-role"><span>Currently exploring as a </span><strong>{role}</strong><i /></p><p className="hero-intro">I bridge business needs and technical possibilities to turn questions into clear, actionable solutions.</p><div className="hero-actions"><button className="button primary" onClick={() => scrollToSection('contact')}>Let&apos;s talk <ArrowUpRight size={17} /></button><button className="text-link" onClick={() => scrollToSection('projects')}>Explore my work <ArrowUpRight size={16} /></button></div><div className="social-row"><a href="mailto:prasannabarge.dev@gmail.com" aria-label="Email Prasanna"><Mail size={17} /></a><a href="https://www.linkedin.com/in/prasanna-barge--/" target="_blank" rel="noreferrer" aria-label="LinkedIn profile"><Linkedin size={17} /></a><a href="https://github.com/prasannabarge" target="_blank" rel="noreferrer" aria-label="GitHub profile"><Github size={17} /></a></div></div>
+          <div className="hero-portrait reveal"><div className="portrait-ring"><img src="/PrasannaBarge.jpg" alt="Portrait of Prasanna Barge" /></div><span className="portrait-note">Based in India<br /><b>Open to opportunities</b></span></div>
+          <div className="scroll-note">Scroll to explore <span>↓</span></div>
         </section>
 
-        {/* About Section */}
-        <section id="about" className="min-h-screen flex items-center px-4 py-20 relative z-10">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-4xl md:text-5xl font-bold mb-8 text-center">About Me</h2>
-            <div
-              className={`rounded-2xl p-8 md:p-12 space-y-6 shadow-xl ${isDarkMode ? 'bg-gray-800' : 'lm-card'}`}
-              style={!isDarkMode ? { boxShadow: '0 8px 32px rgba(99,102,241,0.10), 0 2px 8px rgba(0,0,0,0.07)' } : {}}
-            >
-              <p className={`text-lg leading-relaxed ${isDarkMode ? '' : 'lm-text'}`}>
-                I am a passionate and detail-oriented Business Analyst with a strong foundation in translating business requirements into actionable solutions. My analytical mindset and problem-solving abilities enable me to bridge the gap between stakeholders and technical teams effectively.
-              </p>
-              <p className={`text-lg leading-relaxed ${isDarkMode ? '' : 'lm-text'}`}>
-                With expertise in requirements gathering, process mapping, and data analysis, I am committed to driving business value through strategic insights and continuous improvement. I thrive in collaborative environments where I can contribute to product development and process optimization.
-              </p>
-              <p className={`text-lg leading-relaxed ${isDarkMode ? '' : 'lm-text'}`}>
-                Currently building strong foundations in business analysis through real-world projects and continuous learning. I am actively seeking full-time opportunities where I can apply my analytical skills and contribute to meaningful business outcomes.
-              </p>
-              <div className="grid md:grid-cols-3 gap-6 pt-6">
-                <div
-                  className={`rounded-xl p-6 text-center ${isDarkMode ? 'bg-gray-700' : 'lm-inner'}`}
-                  style={!isDarkMode ? { boxShadow: '0 2px 12px rgba(99,102,241,0.08)' } : {}}
-                >
-                  <div className="text-3xl font-bold text-blue-500 mb-2">Analysis</div>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'lm-sub'}`}>Data-Driven Decisions</p>
-                </div>
-                <div
-                  className={`rounded-xl p-6 text-center ${isDarkMode ? 'bg-gray-700' : 'lm-inner'}`}
-                  style={!isDarkMode ? { boxShadow: '0 2px 12px rgba(99,102,241,0.08)' } : {}}
-                >
-                  <div className="text-3xl font-bold text-purple-500 mb-2">Solutions</div>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'lm-sub'}`}>Strategic Problem Solving</p>
-                </div>
-                <div
-                  className={`rounded-xl p-6 text-center ${isDarkMode ? 'bg-gray-700' : 'lm-inner'}`}
-                  style={!isDarkMode ? { boxShadow: '0 2px 12px rgba(99,102,241,0.08)' } : {}}
-                >
-                  <div className="text-3xl font-bold text-green-500 mb-2">Growth</div>
-                  <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'lm-sub'}`}>Continuous Learning</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        <section id="about" className="section-shell about"><SectionHeading eyebrow="01 / About" title="The space between business and technology is where I work best." text="A curious, detail-oriented analyst with a practical bias toward clarity, collaboration, and useful outcomes." /><div className="about-layout"><div className="about-copy reveal"><p>I am a passionate Business Analyst focused on translating business requirements into actionable solutions. My analytical mindset helps me ask better questions, find the signal in data, and make complex work easier for teams to move forward.</p><p>Through requirements gathering, process mapping, and data analysis, I enjoy connecting stakeholder intent with technical execution. I am currently building on real-world projects and continuous learning while seeking opportunities to contribute to meaningful business outcomes.</p></div><div className="principles reveal"><div><span>01</span><b>Listen closely</b><p>Good solutions begin with the right questions.</p></div><div><span>02</span><b>Find the signal</b><p>Turn scattered information into a shared point of view.</p></div><div><span>03</span><b>Make it useful</b><p>Clarity matters when decisions need to happen.</p></div></div></div></section>
 
-        {/* Skills Section */}
-        <section id="skills" className="min-h-screen flex items-center px-4 py-20">
-          <div className="max-w-7xl mx-auto w-full">
-            <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center">Skills & Expertise</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {skillsCategories.map((category, idx) => (
-                <div
-                  key={idx}
-                  className={`rounded-xl p-6 hover:shadow-xl transition-all duration-300 transform hover:scale-105 ${isDarkMode ? 'bg-gray-800' : 'lm-card'}`}
-                  style={!isDarkMode ? { boxShadow: '0 4px 16px rgba(99,102,241,0.09)' } : {}}
-                >
-                  <h3 className="text-xl font-bold mb-4 text-blue-500">{category.title}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {category.skills.map((skill, skillIdx) => (
-                      <span
-                        key={skillIdx}
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${isDarkMode ? 'bg-gray-700 text-gray-200' : ''}`}
-                        style={!isDarkMode ? { color: '#2d3561', backgroundColor: '#fff', boxShadow: '0 1px 4px rgba(99,102,241,0.10)' } : {}}
-                      >
-                        {skill}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <section id="skills" className="section-shell skills"><SectionHeading eyebrow="02 / Capabilities" title="A toolkit built for clarity." text="The methods, tools, and habits I bring to analytical and collaborative work." /><div className="skills-list">{skills.map(([title, ...items], index) => <article className="skill-group reveal" key={title}><div className="skill-index">0{index + 1}</div><h3>{title}</h3><div className="skill-chips">{items.map((item) => <span key={item}>{item}</span>)}</div></article>)}</div></section>
 
-        {/* Experience Section */}
-        <section id="experience" className="min-h-screen flex items-center px-4 py-20">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl md:text-5xl font-bold mb-8">Experience</h2>
-            <div
-              className={`rounded-2xl p-12 ${isDarkMode ? 'bg-gray-800' : 'lm-card'}`}
-              style={!isDarkMode ? { boxShadow: '0 8px 32px rgba(99,102,241,0.10)' } : {}}
-            >
-              <div className="mb-6">
-                <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <span className="text-3xl">🚀</span>
-                </div>
-                <h3 className="text-2xl font-bold mb-4">Ready to Launch My Career</h3>
-                <p className={`text-lg mb-6 ${isDarkMode ? 'text-gray-400' : 'lm-sub'}`}>
-                  Currently seeking full-time Business Analyst opportunities where I can contribute to impactful projects and grow professionally.
-                </p>
-                <p className={isDarkMode ? 'text-gray-400' : 'lm-sub'}>
-                  Open to internships, projects, and training roles that will allow me to apply my analytical skills and learn from experienced professionals.
-                </p>
-              </div>
-              <div
-                className="mt-8 pt-8 border-t"
-                style={!isDarkMode ? { borderColor: '#c8cfe8' } : { borderColor: '#374151' }}
-              >
-                <p className={`text-sm ${isDarkMode ? 'text-gray-500' : 'lm-sub'}`}>
-                  • Add your experience here as you gain professional roles •
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <section id="experience" className="section-shell experience"><SectionHeading eyebrow="03 / Experience" title="Learning by doing." /><article className="experience-item reveal"><div className="experience-meta"><span className="eyebrow">Jan 2026 — Feb 2026</span><span>Remote · India</span></div><div className="experience-content"><p className="kicker">CodeAlpha</p><h3>Business Data Analyst Intern</h3><ul><li>Gathered and documented business requirements from stakeholders, translating objectives into structured data collection tasks; achieved 95%+ data accuracy using Python (BeautifulSoup, Scrapy).</li><li>Conducted exploratory data analysis (EDA) to surface key trends and data quality issues, enabling 30% faster insight generation and accelerating stakeholder decision-making cycles.</li><li>Designed interactive Power BI dashboards transforming raw data into business narratives, improving stakeholder comprehension of KPIs by 50% and supporting monthly performance reviews.</li></ul></div></article></section>
 
-        {/* Projects Section */}
-        <section id="projects" className="min-h-screen flex items-center px-4 py-20">
-          <div className="max-w-7xl mx-auto w-full">
-            <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center">Projects</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              {projects.map((project, idx) => (
-                <div
-                  key={idx}
-                  className={`rounded-xl p-8 hover:shadow-2xl transition-all duration-300 transform hover:scale-105 ${isDarkMode ? 'bg-gray-800' : 'lm-card'}`}
-                  style={!isDarkMode ? { boxShadow: '0 4px 20px rgba(99,102,241,0.10)' } : {}}
-                >
-                  <h3 className="text-2xl font-bold mb-4">{project.title}</h3>
-                  <p className={`mb-6 ${isDarkMode ? 'text-gray-300' : 'lm-sub'}`}>
-                    {project.overview}
-                  </p>
-                  <div className="mb-6">
-                    <h4 className={`text-sm font-semibold mb-2 ${isDarkMode ? 'text-gray-400' : 'lm-sub'}`}>Tools Used:</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {project.tools.map((tool, toolIdx) => (
-                        <span
-                          key={toolIdx}
-                          className="px-3 py-1 bg-gradient-to-r from-blue-500/20 to-purple-600/20 rounded-full text-sm border border-blue-500/30"
-                          style={!isDarkMode ? { color: '#2d3561', fontWeight: 500 } : {}}
-                        >
-                          {tool}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex space-x-4">
-                    <a
-                      href={project.github}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-colors ${
-                        isDarkMode ? 'bg-gray-700 hover:bg-gray-600 text-gray-200' : 'lm-project-code'
-                      }`}
-                      style={!isDarkMode ? { backgroundColor: '#fff', boxShadow: '0 1px 4px rgba(99,102,241,0.10)' } : {}}
-                    >
-                      <Github size={18} />
-                      <span>Code</span>
-                    </a>
-                    <a
-                      href={project.demo}
-                      className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg hover:shadow-lg transition-all text-white"
-                    >
-                      <ExternalLink size={18} />
-                      <span>Demo</span>
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p className={`text-center mt-8 ${isDarkMode ? 'text-gray-500' : 'lm-sub'}`}>More projects coming soon...</p>
-          </div>
-        </section>
+        <section id="projects" className="section-shell projects"><SectionHeading eyebrow="04 / Selected work" title="Questions, turned into useful views." text="A small selection of analytical work. Each project starts with a business question and ends with a clearer way to act." /><div className="project-list">{projects.map((project) => <article className="project-item reveal" key={project.title}><ProjectPreview kind={project.kind} /><div className="project-copy"><span className="project-number">{project.number}</span><h3>{project.title}</h3><p>{project.description}</p><div className="tool-list">{project.tools.map((tool) => <span key={tool}>{tool}</span>)}</div><span className="availability"><Check size={14} /> Case study available on request</span></div></article>)}</div></section>
 
-        {/* Resume Section */}
-        <section id="resume" className="min-h-screen flex items-center px-4 py-20">
-          <div className="max-w-4xl mx-auto text-center w-full">
-            <h2 className="text-4xl md:text-5xl font-bold mb-12">Resume</h2>
-            <div
-              className={`rounded-2xl p-12 ${isDarkMode ? 'bg-gray-800' : 'lm-card'}`}
-              style={!isDarkMode ? { boxShadow: '0 8px 32px rgba(99,102,241,0.10)' } : {}}
-            >
-              <div className="mb-8">
-                <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto mb-6 flex items-center justify-center">
-                  <Download size={40} className="text-white" />
-                </div>
-                <h3 className="text-2xl font-bold mb-4">Download My Resume</h3>
-                <p className={`mb-8 ${isDarkMode ? 'text-gray-400' : 'lm-sub'}`}>
-                  Get a comprehensive overview of my skills, education, and projects.
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = '/assets/resume/Prasanna_Resume.pdf';
-                  link.download = 'Prasanna_Resume.pdf';
-                  link.click();
-                }}
-                className="px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105 inline-flex items-center space-x-2 text-white"
-              >
-                <Download size={20} />
-                <span>Download Resume</span>
-              </button>
-            </div>
-          </div>
-        </section>
+        <section id="resume" className="section-shell resume"><div className="resume-panel reveal"><div><span className="eyebrow">05 / Resume</span><h2>Want the concise version?</h2><p>The resume PDF is not available in the current project assets. Reach out directly and I&apos;ll be happy to share the latest version.</p></div><a className="button secondary" href="mailto:prasannabarge.dev@gmail.com?subject=Resume%20request">Request resume <ArrowUpRight size={17} /></a></div></section>
 
-        {/* Contact Section */}
-        <section id="contact" className="min-h-screen flex items-center px-4 py-20">
-          <div className="max-w-4xl mx-auto w-full">
-            <h2 className="text-4xl md:text-5xl font-bold mb-12 text-center">Get In Touch</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <h3 className="text-2xl font-bold mb-6">Let's Connect</h3>
-                <p className={`text-lg ${isDarkMode ? 'text-gray-300' : 'lm-sub'}`}>
-                  I'm always open to discussing new opportunities, projects, or just having a conversation about business analysis and technology.
-                </p>
+        <section id="contact" className="section-shell contact"><SectionHeading eyebrow="06 / Contact" title="Let&apos;s make something clearer." text="Whether you have an opportunity, a project, or simply a good question, my inbox is open." /><div className="contact-layout"><div className="contact-details reveal"><a href="mailto:prasannabarge.dev@gmail.com"><Mail size={18} /> prasannabarge.dev@gmail.com <ArrowUpRight size={16} /></a><a href="https://www.linkedin.com/in/prasanna-barge--/" target="_blank" rel="noreferrer"><Linkedin size={18} /> LinkedIn <ArrowUpRight size={16} /></a><a href="https://github.com/prasannabarge" target="_blank" rel="noreferrer"><Github size={18} /> GitHub <ArrowUpRight size={16} /></a></div><form className="contact-form reveal" onSubmit={handleSubmit}><label>Name<input required value={formState.name} onChange={(e) => setFormState({ ...formState, name: e.target.value })} /></label><label>Email<input required type="email" value={formState.email} onChange={(e) => setFormState({ ...formState, email: e.target.value })} /></label><label>Message<textarea required rows="4" value={formState.message} onChange={(e) => setFormState({ ...formState, message: e.target.value })} /></label><button className="button primary" type="submit">Open email draft <ArrowUpRight size={17} /></button></form></div></section>
+      </main>
 
-                <div className="space-y-4">
-                  <a
-                    href="mailto:prasannabarge.dev@gmail.com"
-                    className={`flex items-center space-x-4 p-4 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'lm-card hover:brightness-95'}`}
-                    style={!isDarkMode ? { boxShadow: '0 2px 8px rgba(99,102,241,0.08)' } : {}}
-                  >
-                    <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
-                      <Mail size={24} className="text-white" />
-                    </div>
-                    <div>
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'lm-sub'}`}>Email</p>
-                      <p className="font-semibold">prasannabarge.dev@gmail.com</p>
-                    </div>
-                  </a>
-
-                  <a
-                    href="https://www.linkedin.com/in/prasanna-barge--/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`flex items-center space-x-4 p-4 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'lm-card hover:brightness-95'}`}
-                    style={!isDarkMode ? { boxShadow: '0 2px 8px rgba(99,102,241,0.08)' } : {}}
-                  >
-                    <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
-                      <Linkedin size={24} className="text-white" />
-                    </div>
-                    <div>
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'lm-sub'}`}>LinkedIn</p>
-                      <p className="font-semibold">Connect with me</p>
-                    </div>
-                  </a>
-
-                  <a
-                    href="https://github.com/prasannabarge"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`flex items-center space-x-4 p-4 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-800 hover:bg-gray-700' : 'lm-card hover:brightness-95'}`}
-                    style={!isDarkMode ? { boxShadow: '0 2px 8px rgba(99,102,241,0.08)' } : {}}
-                  >
-                    <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
-                      <Github size={24} className="text-white" />
-                    </div>
-                    <div>
-                      <p className={`text-sm ${isDarkMode ? 'text-gray-400' : 'lm-sub'}`}>GitHub</p>
-                      <p className="font-semibold">View my projects</p>
-                    </div>
-                  </a>
-                </div>
-              </div>
-
-              {/* Contact Form */}
-              <div
-                className={`rounded-xl p-8 ${isDarkMode ? 'bg-gray-800' : 'lm-card'}`}
-                style={!isDarkMode ? { boxShadow: '0 4px 20px rgba(99,102,241,0.10)' } : {}}
-              >
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-semibold mb-2">Name</label>
-                    <input
-                      type="text"
-                      className={`w-full px-4 py-3 rounded-lg border focus:border-blue-500 focus:outline-none transition-colors ${
-                        isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'lm-input border'
-                      }`}
-                      style={!isDarkMode ? { borderColor: '#c8cfe8' } : {}}
-                      placeholder="Your Name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2">Email</label>
-                    <input
-                      type="email"
-                      className={`w-full px-4 py-3 rounded-lg border focus:border-blue-500 focus:outline-none transition-colors ${
-                        isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'lm-input border'
-                      }`}
-                      style={!isDarkMode ? { borderColor: '#c8cfe8' } : {}}
-                      placeholder="your.email@example.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold mb-2">Message</label>
-                    <textarea
-                      rows="4"
-                      className={`w-full px-4 py-3 rounded-lg border focus:border-blue-500 focus:outline-none transition-colors ${
-                        isDarkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'lm-input border'
-                      }`}
-                      style={!isDarkMode ? { borderColor: '#c8cfe8' } : {}}
-                      placeholder="Your message..."
-                    ></textarea>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      alert('Thank you for your message! This is a demo form.');
-                    }}
-                    className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg font-semibold hover:shadow-lg hover:shadow-blue-500/50 transition-all duration-300 text-white"
-                  >
-                    Send Message
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Footer */}
-        <footer
-          className={`py-8 ${isDarkMode ? 'bg-gray-800 border-t border-gray-700' : 'lm-card border-t'}`}
-          style={!isDarkMode ? { borderColor: '#c8cfe8' } : {}}
-        >
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="grid md:grid-cols-3 gap-8 mb-8">
-              <div>
-                <h3 className="text-xl font-bold mb-4 bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-                  Business Analyst Portfolio
-                </h3>
-                <p className={isDarkMode ? 'text-gray-400' : 'lm-sub'}>
-                  Transforming data into actionable insights
-                </p>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-4">Quick Links</h4>
-                <div className="space-y-2">
-                  {['About', 'Skills', 'Projects', 'Contact'].map((item) => (
-                    <button
-                      key={item}
-                      onClick={() => scrollToSection(item.toLowerCase())}
-                      className={`block transition-colors hover:text-blue-500 ${isDarkMode ? 'text-gray-400' : 'lm-sub'}`}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <h4 className="font-semibold mb-4">Connect</h4>
-                <div className="flex space-x-4">
-                  <a
-                    href="mailto:prasannabarge.dev@gmail.com"
-                    className={`p-3 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'lm-footer-social'}`}
-                  >
-                    <Mail size={20} />
-                  </a>
-                  <a
-                    href="https://www.linkedin.com/in/prasanna-barge--/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`p-3 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'lm-footer-social'}`}
-                  >
-                    <Linkedin size={20} />
-                  </a>
-                  <a
-                    href="https://github.com/prasannabarge"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={`p-3 rounded-lg transition-colors ${isDarkMode ? 'bg-gray-700 hover:bg-gray-600' : 'lm-footer-social'}`}
-                  >
-                    <Github size={20} />
-                  </a>
-                </div>
-              </div>
-            </div>
-            <div
-              className="text-center pt-8 border-t"
-              style={!isDarkMode ? { borderColor: '#c8cfe8' } : { borderColor: '#374151' }}
-            >
-              <p className={isDarkMode ? 'text-gray-400' : 'lm-sub'}>
-                © 2026 Prasanna Barge All rights reserved. ❤️ & Built with React & Tailwind CSS
-              </p>
-            </div>
-          </div>
-        </footer>
-      </div>
-    </>
+      <footer className="footer"><span>© 2026 Prasanna Barge</span><span>Business analysis · Data · Product thinking</span><button onClick={() => scrollToSection('home')}>Back to top ↑</button></footer>
+    </div>
   );
-};
+}
 
 export default App;
